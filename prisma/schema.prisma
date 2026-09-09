@@ -1,0 +1,23 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Attendance {
+  id           String    @id @default(cuid())
+  date         DateTime  @unique @db.Date
+  checkInAt    DateTime?
+  checkInNote  String?
+  checkOutAt   DateTime?
+  checkOutNote String?
+  stayMinutes  Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([date])
+}

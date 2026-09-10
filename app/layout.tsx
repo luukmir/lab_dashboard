@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className="antialiased selection:bg-emerald-500/30">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ThemeProvider>
           {children}
         </ThemeProvider>
       </body>

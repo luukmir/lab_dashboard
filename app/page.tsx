@@ -4,6 +4,7 @@ import { calculateWeekdayStreak } from '@/lib/streak';
 import { CheckInCard } from '@/components/CheckInCard';
 import { AttendanceHeatmap } from '@/components/AttendanceHeatmap';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AttendanceLogActions } from '../components/AttendanceLogActions';
 import { Activity, Flame, Clock, CalendarDays } from 'lucide-react';
 import type { Attendance } from '@prisma/client';
 
@@ -18,12 +19,16 @@ export default async function DashboardPage() {
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const todayRecord = records.find((r: Attendance) => {
-    const d = new Date(r.date);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === todayStr;
+    return new Date(r.date).toISOString().slice(0, 10) === todayStr;
   });
 
   const streak = calculateWeekdayStreak(records);
   const recentRecords = records.slice(0, 8);
+  const currentStayMinutes = todayRecord?.checkInAt
+    ? todayRecord.checkOutAt
+      ? todayRecord.stayMinutes
+      : Math.max(0, Math.floor((now.getTime() - new Date(todayRecord.checkInAt).getTime()) / (1000 * 60)))
+    : 0;
 
   return (
     <main className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-6 lg:p-8 flex flex-col gap-6 transition-colors duration-200">
@@ -54,7 +59,7 @@ export default async function DashboardPage() {
             <div>
               <div className="text-[11px] text-zinc-500 dark:text-zinc-400">本日の滞在時間</div>
               <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                {todayRecord?.stayMinutes ? `${Math.floor(todayRecord.stayMinutes / 60)}h ${todayRecord.stayMinutes % 60}m` : '--'}
+                {currentStayMinutes ? `${Math.floor(currentStayMinutes / 60)}h ${currentStayMinutes % 60}m` : '--'}
               </div>
             </div>
           </div>
@@ -108,34 +113,19 @@ export default async function DashboardPage() {
                 <th className="pb-3 px-3 w-24">始業</th>
                 <th className="pb-3 px-3 w-24">終業</th>
                 <th className="pb-3 px-3 w-28">滞在時間</th>
-                <th className="pb-3 px-3">朝のひとこと / 目標</th>
-                <th className="pb-3 px-3">帰りのひとこと / 進捗</th>
+                <th className="pb-3 px-3 w-[280px]">朝のひとこと / 目標</th>
+                <th className="pb-3 px-3 w-[280px]">帰りのひとこと / 進捗</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
               {recentRecords.map((r: Attendance) => {
-                const d = new Date(r.date);
-                const dateText = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 return (
-                  <tr key={r.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                    <td className="py-3.5 px-3 font-mono text-zinc-700 dark:text-zinc-300 font-medium">{dateText}</td>
-                    <td className="py-3.5 px-3 text-zinc-500 dark:text-zinc-400 font-mono">
-                      {r.checkInAt ? new Date(r.checkInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
-                    </td>
-                    <td className="py-3.5 px-3 text-zinc-500 dark:text-zinc-400 font-mono">
-                      {r.checkOutAt ? new Date(r.checkOutAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
-                    </td>
-                    <td className="py-3.5 px-3 font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
-                      {r.stayMinutes > 0 ? `${Math.floor(r.stayMinutes / 60)}h ${r.stayMinutes % 60}m` : '-'}
-                    </td>
-                    <td className="py-3.5 px-3 text-zinc-800 dark:text-zinc-200">{r.checkInNote || <span className="text-zinc-400 dark:text-zinc-600">-</span>}</td>
-                    <td className="py-3.5 px-3 text-zinc-800 dark:text-zinc-200">{r.checkOutNote || <span className="text-zinc-400 dark:text-zinc-600">-</span>}</td>
-                  </tr>
+                  <AttendanceLogActions key={r.id} record={r} />
                 );
               })}
               {recentRecords.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-zinc-400 dark:text-zinc-500 text-sm">
+                  <td colSpan={7} className="py-8 text-center text-zinc-400 dark:text-zinc-500 text-sm">
                     まだ記録がありません。
                   </td>
                 </tr>

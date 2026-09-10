@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 function getTodayDate() {
   const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 }
 
 export async function checkInAction(note: string) {
@@ -48,5 +48,37 @@ export async function checkOutAction(note: string) {
     },
   });
 
+  revalidatePath('/');
+}
+
+export async function updateAttendanceAction(
+  id: string,
+  checkInAt: string,
+  checkOutAt: string,
+  checkInNote: string,
+  checkOutNote: string,
+) {
+  const parsedCheckInAt = checkInAt ? new Date(checkInAt) : null;
+  const parsedCheckOutAt = checkOutAt ? new Date(checkOutAt) : null;
+  const stayMinutes = parsedCheckInAt && parsedCheckOutAt
+    ? Math.max(0, Math.floor((parsedCheckOutAt.getTime() - parsedCheckInAt.getTime()) / (1000 * 60)))
+    : 0;
+
+  await prisma.attendance.update({
+    where: { id },
+    data: {
+      checkInAt: parsedCheckInAt,
+      checkOutAt: parsedCheckOutAt,
+      checkInNote: checkInNote || null,
+      checkOutNote: checkOutNote || null,
+      stayMinutes,
+    },
+  });
+
+  revalidatePath('/');
+}
+
+export async function deleteAttendanceAction(id: string) {
+  await prisma.attendance.delete({ where: { id } });
   revalidatePath('/');
 }

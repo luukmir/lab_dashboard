@@ -26,15 +26,17 @@ export function CheckInCard({ todayRecord }: Props) {
   const router = useRouter();
   const [inNote, setInNote] = useState(todayRecord?.checkInNote || '');
   const [outNote, setOutNote] = useState(todayRecord?.checkOutNote || '');
-  const [checkInTime, setCheckInTime] = useState<Date | null>(todayRecord?.checkInAt ? new Date(todayRecord.checkInAt) : null);
-  const [checkOutTime, setCheckOutTime] = useState<Date | null>(todayRecord?.checkOutAt ? new Date(todayRecord.checkOutAt) : null);
+  const [checkInTime, setCheckInTime] = useState<Date | null>(todayRecord?.checkInAt && !todayRecord.checkOutAt ? new Date(todayRecord.checkInAt) : null);
+  const [checkOutTime, setCheckOutTime] = useState<Date | null>(todayRecord?.checkInAt && todayRecord.checkOutAt ? new Date(todayRecord.checkOutAt) : null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCheckIn = async () => {
     setIsLoading(true);
     await checkInAction(inNote);
     setCheckInTime(new Date());
+    setCheckOutTime(null);
     setInNote('');
+    setOutNote('');
     confetti({
       particleCount: 100,
       spread: 70,
@@ -47,6 +49,7 @@ export function CheckInCard({ todayRecord }: Props) {
   const handleCheckOut = async () => {
     setIsLoading(true);
     await checkOutAction(outNote);
+    setCheckInTime(null);
     setCheckOutTime(new Date());
     setOutNote('');
     setIsLoading(false);
@@ -64,9 +67,6 @@ export function CheckInCard({ todayRecord }: Props) {
             </span>
           )}
         </div>
-        <span className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/50 px-2.5 py-1 rounded-full font-medium">
-          <Sparkles className="w-3.5 h-3.5" /> ログインボーナス獲得可能
-        </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
@@ -118,7 +118,7 @@ export function CheckInCard({ todayRecord }: Props) {
             className="w-full border border-blue-700/30 bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-blue-700/20 hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-700/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-zinc-300 disabled:bg-zinc-200 disabled:text-zinc-500 disabled:shadow-none dark:disabled:border-zinc-700 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500"
           >
             <LogOut className="w-4 h-4" />
-            {checkOutTime ? '終業コメントを更新' : '下校する'}
+            {checkOutTime && !checkInTime ? '下校済み' : checkOutTime ? '終業コメントを更新' : '下校する'}
           </button>
         </div>
       </div>

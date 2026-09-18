@@ -17,6 +17,9 @@ export async function checkInAction(note: string) {
     update: {
       checkInAt: now,
       checkInNote: note,
+      checkOutAt: null,
+      checkOutNote: null,
+      stayMinutes: 0,
     },
     create: {
       date: today,

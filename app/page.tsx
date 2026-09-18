@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     return new Date(r.date).toISOString().slice(0, 10) === todayStr;
   });
 
-  const streak = calculateWeekdayStreak(records);
+  const streak = await calculateWeekdayStreak(records);
   const recentRecords = records.slice(0, 8);
   const currentStayMinutes = todayRecord?.checkInAt
     ? todayRecord.checkOutAt

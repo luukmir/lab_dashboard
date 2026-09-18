@@ -15,9 +15,9 @@ interface HeatmapValue {
 
 export function AttendanceHeatmap({ records }: { records: RecordItem[] }) {
   const endDate = new Date();
-  const lastMonday = startOfWeek(endDate, { weekStartsOn: 1 });
+  const lastSunday = startOfWeek(endDate, { weekStartsOn: 0 });
   const weekCount = 16;
-  const firstMonday = addDays(lastMonday, -(weekCount - 1) * 7);
+  const firstSunday = addDays(lastSunday, -(weekCount - 1) * 7);
 
   const values: HeatmapValue[] = records.map((r: RecordItem) => {
     const d = new Date(r.date);
@@ -28,8 +28,8 @@ export function AttendanceHeatmap({ records }: { records: RecordItem[] }) {
   });
   const valueByDate = new Map(values.map((value) => [value.date, value.count]));
   const weeks = Array.from({ length: weekCount }, (_, weekIndex) => {
-    const monday = addDays(firstMonday, weekIndex * 7);
-    return Array.from({ length: 7 }, (_, weekdayIndex) => addDays(monday, weekdayIndex));
+    const sunday = addDays(firstSunday, weekIndex * 7);
+    return Array.from({ length: 7 }, (_, weekdayIndex) => addDays(sunday, weekdayIndex));
   });
 
   const getLevel = (count: number) => {

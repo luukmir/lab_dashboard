@@ -93,10 +93,10 @@ export function AttendanceLogActions({ record }: { record: AttendanceRecord }) {
       <td className="w-[280px] max-w-[280px] py-3.5 px-3 text-zinc-800 dark:text-zinc-200">
         {isEditing ? <textarea aria-label="終業メモ" value={checkOutNote} onChange={(event) => setCheckOutNote(event.target.value)} className={noteClass} /> : <ExpandableNote note={record.checkOutNote} />}
       </td>
-      <td className={`${isEditing ? 'w-20 px-3' : 'relative w-0 p-0'}`}>
+      <td className="w-20 px-3">
         <div className={isEditing
           ? 'flex items-center justify-end gap-2'
-          : 'pointer-events-none absolute right-4 top-1/2 flex -translate-y-1/2 gap-2 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100'}>
+          : 'pointer-events-none flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100'}>
           {isEditing ? (
             <>
               <button type="button" onClick={handleSave} disabled={isSaving} className="text-emerald-600 hover:text-emerald-500 disabled:opacity-50" aria-label="変更を保存" title="保存"><Check className="h-4 w-4" /></button>

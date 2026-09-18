@@ -11,6 +11,7 @@
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
+    "@liha-labs/holiday": "^0.1.0",
     "@prisma/client": "^5.22.0",
     "canvas-confetti": "^1.9.4",
     "date-fns": "^4.4.0",

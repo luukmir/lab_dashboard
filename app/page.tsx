@@ -3,9 +3,9 @@ import prisma from '@/lib/prisma';
 import { calculateWeekdayStreak } from '@/lib/streak';
 import { CheckInCard } from '@/components/CheckInCard';
 import { AttendanceHeatmap } from '@/components/AttendanceHeatmap';
+import { AttendanceLogTable } from '@/components/AttendanceLogTable';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { AttendanceLogActions } from '../components/AttendanceLogActions';
-import { Activity, Flame, Clock, CalendarDays } from 'lucide-react';
+import { Activity, Flame, Clock, CalendarDays, Timer } from 'lucide-react';
 import type { Attendance } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
@@ -23,12 +23,13 @@ export default async function DashboardPage() {
   });
 
   const streak = await calculateWeekdayStreak(records);
-  const recentRecords = records.slice(0, 8);
   const currentStayMinutes = todayRecord?.checkInAt
     ? todayRecord.checkOutAt
       ? todayRecord.stayMinutes
       : Math.max(0, Math.floor((now.getTime() - new Date(todayRecord.checkInAt).getTime()) / (1000 * 60)))
     : 0;
+  const totalStayMinutes = records.reduce((total, record) => total + record.stayMinutes, 0)
+    + (todayRecord?.checkOutAt ? 0 : currentStayMinutes);
 
   return (
     <main className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-6 lg:p-8 flex flex-col gap-6 transition-colors duration-200">
@@ -72,6 +73,16 @@ export default async function DashboardPage() {
             </div>
           </div>
 
+          <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2 rounded-2xl shadow-sm">
+            <Timer className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+            <div>
+              <div className="text-[11px] text-zinc-500 dark:text-zinc-400">総滞在時間</div>
+              <div className="text-lg font-bold text-violet-600 dark:text-violet-400">
+                {Math.floor(totalStayMinutes / 60)}h {totalStayMinutes % 60}m
+              </div>
+            </div>
+          </div>
+
           {/* テーマ切り替えボタン */}
           <ThemeToggle />
         </div>
@@ -105,34 +116,7 @@ export default async function DashboardPage() {
       {/* 直近の打刻ログ */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex-1">
         <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">直近の打刻ログ</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800">
-              <tr>
-                <th className="pb-3 px-3 w-32">日付</th>
-                <th className="pb-3 px-3 w-24">始業</th>
-                <th className="pb-3 px-3 w-24">終業</th>
-                <th className="pb-3 px-3 w-28">滞在時間</th>
-                <th className="pb-3 px-3 w-[280px]">朝のひとこと / 目標</th>
-                <th className="pb-3 px-3 w-[280px]">帰りのひとこと / 進捗</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-              {recentRecords.map((r: Attendance) => {
-                return (
-                  <AttendanceLogActions key={r.id} record={r} />
-                );
-              })}
-              {recentRecords.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-zinc-400 dark:text-zinc-500 text-sm">
-                    まだ記録がありません。
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AttendanceLogTable records={records} />
       </div>
     </main>
   );
